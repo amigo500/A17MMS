@@ -1,0 +1,84 @@
+﻿@page "/"
+
+<div class="row">
+    <div class="col-lg-8">
+        <div class="card">
+            <div class="card-header">
+                Machines Dashboard
+                 </div>
+            <div class="card-body">
+                <table class="table table-striped">
+                    <tbody>
+                        @if (Machines == null)
+                        {
+                            <tr>
+                                <td><em>Loading...</em></td>
+                            </tr>
+                        }
+                        else
+                        {
+                            @foreach (var machine in Machines)
+                            {
+                                <tr>
+                                    <td>
+                                        <strong>@machine.Name</strong><br />
+                                        @machine.Id
+                                    </td>
+                                    <td>
+                                        <strong>Status: </strong>@machine.Status<br />
+                                        <strong>Data: </strong>@machine.Data
+                                    </td>
+                                    <td>
+                                        <a @onclick="() => Update(machine)" class="btn btn-dark btn-sm rounded-circle text-light" title="Power">
+                                            <span class="oi oi-power-standby @(machine.Status.ToString() == "Offline" ? "text-success" : "text-danger")"></span>
+                                        </a>
+                                        <a @onclick="() => Delete(machine)" class="btn btn-danger btn-sm rounded-circle text-light" title="Remove">
+                                            <span class="oi oi-trash"></span>
+                                        </a>
+                                    </td>
+                                </tr>
+                            }
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-4">
+        <MachineForm OnSubmitCallback="@LoadData"/>
+    </div>
+</div>
+
+@code {
+    public List<Machine> Machines { get; set; } = new List<Machine>();
+
+    [Inject]
+    public IMachineDataService MachineDataService { get; set; }
+
+    protected async override Task OnInitializedAsync()
+    {
+        await LoadData();
+    }
+
+    private async Task LoadData()
+    {
+        Machines = (await MachineDataService.GetMachines()).ToList();
+        StateHasChanged();
+    }
+
+    private async Task Update(Machine machine)
+    {
+        UpdateMachineDto updateMachine = new UpdateMachineDto()
+        {
+            Status = machine.Status == Status.Offline ? Status.Online : Status.Offline
+        };
+        await MachineDataService.UpdateMachine(machine.Id, updateMachine);
+        await LoadData();
+    }
+
+    private async Task Delete(Machine machine)
+    {
+        await MachineDataService.DeleteMachine(machine.Id);
+        await LoadData();
+    }
+}

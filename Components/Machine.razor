@@ -1,0 +1,44 @@
+﻿<div class="card">
+    <div class="card-header">
+        New Machine
+</div>
+    <div class="card-body">
+        <EditForm Model="@Machine" OnValidSubmit="@HandleValidSubmit">
+            <DataAnnotationsValidator />
+            <ValidationSummary />
+            <div class="form-group">
+                <label for="nameInput">Name</label>
+                <InputText id="nameInput" class="form-control" @bind-Value="@Machine.Name" />
+            </div>
+            <div class="form-group">
+                <label for="statusInput">Status</label>
+                <InputSelect id="statusInput" class="form-control" @bind-Value="@Machine.Status">
+                    @foreach (var value in Enum.GetValues(typeof(Status)))
+                    {
+                        <option value="@value">@value</option>
+                    }
+                </InputSelect>
+            </div>
+            <div class="form-group">
+                <input type="submit" class="btn btn-primary" value="Submit" />
+            </div>
+        </EditForm>
+    </div>
+</div>
+
+@code {
+    protected CreateMachineDto Machine { get; set; } = new CreateMachineDto();
+
+    [Parameter]
+    public EventCallback OnSubmitCallback { get; set; }
+
+    [Inject]
+    protected IMachineDataService MachineDataService { get; set; }
+
+    public async Task HandleValidSubmit()
+    {
+        await MachineDataService.AddMachine(Machine);
+        await OnSubmitCallback.InvokeAsync();
+        Machine = new CreateMachineDto();
+    }
+}

@@ -1,6 +1,6 @@
 ﻿namespace A17MMS.Models
 {
-    public class Status
+    public enum Status
     {
         Offline,
         Online
